@@ -19,60 +19,53 @@
 ************************************************************************/
 
 using UnityEngine;
-using System.Collections;
-using System.Runtime.InteropServices;
 using System;
+using System.Runtime.InteropServices;
+
 public class ALPSGyro : MonoBehaviour {
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
 
 	/**Private**/
-	private float dt_q_x = 0,dt_q_y=0, dt_q_z=0,dt_q_w=0;
-	private float gr_x=0,gr_y=0,gr_z=0,gr_w=0;
-
-	private Quaternion dt_q_gyro = Quaternion.identity;
-	private Quaternion game_rotation = Quaternion.identity;
 	private Quaternion landscapeLeft = Quaternion.Euler(90, 0, 0);
+	private Quaternion orientation = Quaternion.identity;
+	private float q0,q1,q2,q3;
 
-	/**Functions**/
-	#if UNITY_ANDROID
-		[DllImport("alps_native_sensor")] public static extern void  init();
-		[DllImport("alps_native_sensor")] public static extern void  get_dt_gyro  (ref float dt_q_x,   ref float dt_q_y,  ref float dt_q_z, ref float dt_q_w);
-		[DllImport("alps_native_sensor")] public static extern void  get_game_rotation (ref float gr_x,   ref float gr_y,  ref float gr_z, ref float gr_w);
-	#endif 	
-	
-	public void Start () {
-		Screen.sleepTimeout = SleepTimeout.NeverSleep;
-		Application.targetFrameRate = 60;
+	//=====================================================================================================
+	// Functions
+	//=====================================================================================================
+	[DllImport ("alps_native_sensor")] private static extern void get_q(ref float q0,ref float q1,ref float q2,ref float q3);
+	[DllImport ("alps_native_sensor")] private static extern void init();
+
+	/// <summary>
+	/// Initializes ALPS native plugin.
+	/// </summary>
+	public void Awake(){
 		#if UNITY_ANDROID
-			init ();				
+			init();
 		#endif
 	}
 
-
+	/// <summary>
+	/// Updates head orientation after all Update functions have been called.
+	/// </summary>
 	public void LateUpdate () {
 		#if UNITY_ANDROID
-			transform.localRotation = getOrientation();
+		getOrientation();
+		transform.localRotation = landscapeLeft * orientation;
 		#endif
 	}
-	
-	private Quaternion getOrientation ()
-	{
 
-		//get delta rotation
-		get_dt_gyro(ref dt_q_x, ref dt_q_y, ref dt_q_z, ref dt_q_w);
-		dt_q_gyro.x = dt_q_y;
-		dt_q_gyro.y = -dt_q_x;
-		dt_q_gyro.z = dt_q_z;
-		dt_q_gyro.w = dt_q_w;
-
-		//get game rotation
-		get_game_rotation(ref gr_x, ref gr_y, ref gr_z, ref gr_w);
-		game_rotation.x = gr_y;
-		game_rotation.y = -gr_x;
-		game_rotation.z = gr_z;
-		game_rotation.w = gr_w;
-
-		//Must be optimized. Delta rotation is multiplies five times to accelerate the movement.
-		//This doesn't replace faster sensor polling but it makes tracking look more responsive.
-		return landscapeLeft * game_rotation * dt_q_gyro;
+	/// <summary>
+	/// Gets orientation from ALPS native plugin.
+	/// </summary>
+	public void getOrientation(){
+		get_q (ref q0,ref q1,ref q2,ref q3);
+		orientation.x = q1;
+		orientation.y = -q0;
+		orientation.z = q2;
+		orientation.w = q3;
 	}
+	
 }

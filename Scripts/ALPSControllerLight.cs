@@ -23,11 +23,17 @@ using System.Collections;
 
 public class ALPSControllerLight : MonoBehaviour {
 
-	/**Public**/
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
 
+	/**Public**/
 	//One camera for each eye
-	public GameObject CameraLeft;
-	public GameObject CameraRight;
+	public GameObject cameraLeft;
+	public GameObject cameraRight;
+
+	//Head represents user's head
+	public GameObject head;
 
 	//Inter lens distance in millimeters. Should match the IPD but can be tweaked
 	//to increase or decrease the stereo effect. Basically, with an ILD set to 0, there
@@ -35,80 +41,94 @@ public class ALPSControllerLight : MonoBehaviour {
 	public float ILD;
 
 	//Vector between eyes and the pivot point (neck)
-	public Vector2 NeckToEye;
+	public Vector2 neckToEye;
 
-	public bool AddTracking;
+	//=====================================================================================================
+	// Functions
+	//=====================================================================================================
 
-	/**Functions**/
-	void Awake () {
-		if (AddTracking) {
-			#if UNITY_EDITOR
-				gameObject.AddComponent ("MouseLook");
-			#elif UNITY_ANDROID
-				gameObject.AddComponent("ALPSGyro");
-				Screen.orientation = ScreenOrientation.LandscapeLeft;
-				ALPSAndroid.Init ();
-			#endif
-		}
-		CameraLeft = new GameObject("CameraLeft");
-		CameraLeft.AddComponent ("Camera");
-		CameraLeft.camera.rect = new Rect (0,0,0.5f,1);
-		CameraLeft.transform.parent = transform;
-		CameraLeft.transform.position = transform.position;
-		CameraLeft.transform.localPosition = new Vector3 (ILD*-0.0005f,NeckToEye.y*0.001f,NeckToEye.x*0.001f);
+	/// <summary>
+	/// Initializes side-by-side rendering and head tracking.
+	/// </summary>
+	public void Awake () {
+		head = new GameObject ("ALPSHead");
+		head.transform.parent = transform;
+		head.transform.position = transform.position;
+		#if UNITY_EDITOR
+			head.AddComponent ("MouseLook");
+		#elif UNITY_ANDROID
+			head.AddComponent("ALPSGyro");
+		#endif
+		cameraLeft = new GameObject("CameraLeft");
+		cameraLeft.AddComponent ("Camera");
+		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraLeft.transform.parent = head.transform;
+		cameraLeft.transform.position = head.transform.position;
+		cameraLeft.transform.localPosition = new Vector3 (ILD*-0.0005f,neckToEye.y*0.001f,neckToEye.x*0.001f);
+
+		cameraRight = new GameObject("CameraRight");
+		cameraRight.AddComponent ("Camera");
+		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+		cameraRight.transform.parent = head.transform;
+		cameraRight.transform.position = head.transform.position;
+		cameraRight.transform.localPosition = new Vector3 (ILD*0.0005f,neckToEye.y*0.001f,neckToEye.x*0.001f);
+
 		AudioListener[] listeners = FindObjectsOfType(typeof(AudioListener)) as AudioListener[];
-
-		CameraRight = new GameObject("CameraRight");
-		CameraRight.AddComponent ("Camera");
-		CameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
-		CameraRight.transform.parent = transform;
-		CameraRight.transform.position = transform.position;
-		CameraRight.transform.localPosition = new Vector3 (ILD*0.0005f,NeckToEye.y*0.001f,NeckToEye.x*0.001f);
-
-
 		if (listeners.Length < 1) {
 			gameObject.AddComponent ("AudioListener");
 		}
-
-		CameraLeft.camera.fieldOfView = 90f;
-		CameraRight.camera.fieldOfView = 90f;
-		SetStereoLayers ("left","right");
-
 	}
 
+	/// <summary>
+	/// Copy camera settings to left and right cameras. Will overwrite culling masks.
+	/// </summary>
+	/// <param name="_cam">The camera from which you want to copy the settings.</param>
 	public void SetCameraSettings(Camera _cam){
-		CameraLeft.camera.CopyFrom (_cam);
-		CameraRight.camera.CopyFrom (_cam);
-		CameraLeft.camera.rect = new Rect (0,0,0.5f,1);
-		CameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+		cameraLeft.camera.CopyFrom (_cam);
+		cameraRight.camera.CopyFrom (_cam);
+		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
 	}
-
+	
+	/// <summary>
+	/// Adds left and right layers to the existing culling masks for left and right cameras.
+	/// </summary>
+	/// <param name="_leftLayer">Name of the layer rendered by the left camera.</param>
+	/// <param name="_rightLayer">Name of the layer rendered by the right camera.</param>
 	public int SetStereoLayers(string _leftLayer, string _rightLayer){
 		int leftLayer = LayerMask.NameToLayer (_leftLayer);
 		int rightLayer = LayerMask.NameToLayer (_rightLayer);
 		if (leftLayer < 0 && rightLayer < 0) return -1;
 
-		CameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
-		CameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
+		cameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
+		cameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
 
-		CameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
-		CameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
+		cameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
+		cameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
 
 		return 0;
 	}
 
-	//This can be useful for setting up a Raycast
+	/// <summary>
+	/// Returns point of view position. This can be useful for setting up a Raycast.
+	/// </summary>
 	public Vector3 PointOfView(){
 		//returns current position plus NeckToEye vector
-		return new Vector3(transform.position.x,transform.position.y + NeckToEye.y*0.001f,transform.position.z + NeckToEye.x*0.001f);
+		return new Vector3(transform.position.x,transform.position.y + neckToEye.y*0.001f,transform.position.z + neckToEye.x*0.001f);
 	}
 
+	/// <summary>
+	/// Returns forward direction vector. This can be useful for setting up a Raycast.
+	/// </summary>
 	public Vector3 ForwardDirection(){
-		return CameraLeft.camera.transform.forward;
+		return cameraLeft.camera.transform.forward;
 	}
 
+	/// <summary>
+	/// Returns left and right cameras.
+	/// </summary>
 	public Camera[] GetCameras(){
-		Camera[] cams = {CameraLeft.camera, CameraRight.camera};
+		Camera[] cams = {cameraLeft.camera, cameraRight.camera};
 		return cams;
 	}
 }

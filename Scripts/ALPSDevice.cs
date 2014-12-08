@@ -21,34 +21,47 @@
 using UnityEngine;
 using System.Collections;
 
-public enum Device{
-	DEFAULT,
-	ALTERGAZE,
-	CARDBOARD,
-	FIREFLY
-};
-public enum ScreenOption{
-	FixedSize, 
-	FullScreen
-};
+	//====================================================================================================
+	// Attributes
+	//====================================================================================================
+
+	public enum Device{
+		DEFAULT,
+		ALTERGAZE,
+		CARDBOARD,
+		FIREFLY
+	};
+
+	public enum ScreenOption{
+		FixedSize, 
+		FullScreen
+	};
+
 public class ALPSDevice {
 
-	/**Functions**/
-	public static ALPSConfig getConfig(Device _device){
+	//====================================================================================================
+	// Functions
+	//====================================================================================================
+
+	/// <summary>
+	/// Returns device configuration corresponding to a device name.
+	/// </summary>
+	/// <param name="_device">Device name.</param>
+	public static ALPSConfig GetConfig(Device _device){
 		ALPSConfig config;
 		switch (_device) {
 			case Device.ALTERGAZE:
-			config = new ALPSConfig(Device.ALTERGAZE,true,true,false,62f,62f,90f,-1f,0.4f,0.2f,0,0);
+			config = new ALPSConfig(Device.ALTERGAZE,true,true,false,62f,62f,85f,-1f,0.4f,0.2f,0,0);
 				break;
 			case Device.CARDBOARD:
-			config = new ALPSConfig(Device.CARDBOARD,true,true,false,62f,62f,90f,-1.5f,0.5f,0.2f,128,75);
+			config = new ALPSConfig(Device.CARDBOARD,true,true,false,62f,62f,85f,-1.5f,0.5f,0.2f,128,75);
 				break;
 			case Device.FIREFLY:
-			config = new ALPSConfig(Device.FIREFLY,true,true,false,62f,62f,90f,-2f,0.7f,0.2f,140,75);
+			config = new ALPSConfig(Device.FIREFLY,true,true,false,62f,62f,85f,-2f,0.7f,0.2f,140,75);
 				break;
 			case Device.DEFAULT:
 			default: 
-				config = new ALPSConfig(Device.DEFAULT,false,false,false,62f,62f,90f,0f,0f,0f,0,0);
+				config = new ALPSConfig(Device.DEFAULT,false,false,false,62f,62f,85f,0f,0f,0f,0,0);
 				break;
 		}
 		return config;

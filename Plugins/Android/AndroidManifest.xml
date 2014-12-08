@@ -10,7 +10,7 @@
 	
     <uses-sdk
         android:minSdkVersion="9"
-        android:targetSdkVersion="19"
+        android:targetSdkVersion="21"
 	/>
 
     <application
@@ -19,7 +19,7 @@
         android:label="@string/app_name"
 	>
         <activity
-            android:name="com.alpsvr.immersive.ALPSActivity"
+            android:name="com.alpsvr.android.ALPSActivity"
             android:label="@string/app_name" 
 			android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen"
 		>

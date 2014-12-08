@@ -19,28 +19,38 @@
 ************************************************************************/
 
 using UnityEngine;
-using System.Collections;
+using System;
 
 public class ALPSAndroid : MonoBehaviour {
+
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
 
 	/**Private**/
 	private static AndroidJavaClass jc;
 
-	/**Functions**/
-	// Use this for initialization
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
+
+	/// <summary>
+	/// Initializes Android ALPS Activity.
+	/// </summary>
 	public static void Init () {
-		jc = new AndroidJavaClass ("com.alpsvr.immersive.ALPSActivity"); 
+		Screen.sleepTimeout = SleepTimeout.NeverSleep;
+		jc = new AndroidJavaClass ("com.alpsvr.android.ALPSActivity"); 
 	}
 
 	/// <summary>
-	/// Vibrate constantly for 8 milliseconds.
+	/// Vibrates constantly for 8 milliseconds.
 	/// </summary>
 	public static void Vibrate(){
 		Vibrate(8);
 	}
 
 	/// <summary>
-	/// Vibrate constantly for the specified period of time.
+	/// Vibrates constantly for the specified period of time.
 	/// </summary>
 	/// <param name="_milliseconds">The number of milliseconds to vibrate.</param>
 	public static void Vibrate(int _milliseconds){
@@ -59,5 +69,17 @@ public class ALPSAndroid : MonoBehaviour {
 	/// </summary>
 	public static int HeightPixels(){
 		return jc.CallStatic<int> ("getHeightPixel");
+	}
+
+	/// <summary>
+	/// The device orientation.
+	/// </summary>
+	public static Quaternion DeviceOrientation(){
+		//switch x and y
+		float y = jc.CallStatic<float> ("getGameRotationX");
+		float x = jc.CallStatic<float> ("getGameRotationY");
+		float z = jc.CallStatic<float> ("getGameRotationZ");
+		float w = jc.CallStatic<float> ("getGameRotationW");
+		return new Quaternion (x,-y,z,w);
 	}
 }

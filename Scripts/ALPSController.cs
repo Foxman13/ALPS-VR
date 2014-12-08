@@ -24,74 +24,100 @@ using System.Collections;
 [System.Serializable]
 public class ALPSController : MonoBehaviour {
 
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
+
 	/**Public**/
-	public ALPSConfig DeviceConfig = ALPSDevice.getConfig(Device.FIREFLY);
+	//The current device configuration
+	public ALPSConfig deviceConfig = ALPSDevice.GetConfig(Device.DEFAULT);
 
 	//One camera for each eye
-	public Camera CameraLeft;
-	public Camera CameraRight;
+	public GameObject cameraLeft;
+	public GameObject cameraRight;
+
+	//Head represents user's head
+	public GameObject head;
 
 	//Render textures
 	public RenderTexture srcTex;
 	public RenderTexture destTex;
 
 	//Screen size
-	public static int ScreenWidthPix;
-	public static int ScreenHeightPix;
+	public static int screenWidthPix;
+	public static int screenHeightPix;
 
 	//Material
 	public Material mat;
 
-	//Crosshair
-	public bool CrosshairEnabled;
+	//Crosshairs
+	public bool crosshairsEnabled;
 
 	/**Private**/
 	private Rect rectLeft,rectRight;
 	private float DPI;
 
-	/**Functions**/
+	//=====================================================================================================
+	// Functions
+	//=====================================================================================================
+
+	/// <summary>
+	/// Initializes side-by-side rendering and head tracking. 
+	/// </summary>
 	public void Awake(){
+		ALPSCamera.deviceConfig = deviceConfig;
+		ALPSBarrelMesh.deviceConfig = deviceConfig;
+		ALPSCrosshairs.deviceConfig = deviceConfig;
+		ALPSGUI.controller = this;
+
+		head = new GameObject ("ALPSHead");
+		head.transform.parent = transform;
+		head.transform.position = transform.position;
+
 		#if UNITY_EDITOR
-			transform.FindChild("Head").gameObject.AddComponent("MouseLook");
-			ScreenWidthPix = Screen.width;
-			ScreenHeightPix = Screen.height;
+			head.AddComponent("MouseLook");
+			screenWidthPix = Screen.width;
+			screenHeightPix = Screen.height;
 		#elif UNITY_ANDROID
-			transform.FindChild("Head").gameObject.AddComponent("ALPSGyro");
+			head.AddComponent("ALPSGyro");
 			Screen.orientation = ScreenOrientation.LandscapeLeft;
 			ALPSAndroid.Init ();
-			ScreenWidthPix = ALPSAndroid.WidthPixels ();
-			ScreenHeightPix = ALPSAndroid.HeightPixels ();
+			screenWidthPix = ALPSAndroid.WidthPixels ();
+			screenHeightPix = ALPSAndroid.HeightPixels ();
 		#endif
 
 		//Make sure the longer dimension is width as the phone is always in landscape mode
-		if(ScreenWidthPix<ScreenHeightPix){
-			int tmp = ScreenHeightPix;
-			ScreenHeightPix = ScreenWidthPix;
-			ScreenWidthPix = tmp;
+		if(screenWidthPix<screenHeightPix){
+			int tmp = screenHeightPix;
+			screenHeightPix = screenWidthPix;
+			screenWidthPix = tmp;
 		}
 
-		CameraLeft = transform.FindChild ("Head/EyeLeft").camera;
-		CameraRight = transform.FindChild ("Head/EyeRight").camera;
-	
-		ALPSCamera.DeviceConfig = DeviceConfig;
-		ALPSBarrelMesh.DeviceConfig = DeviceConfig;
-		ALPSCrosshair.DeviceConfig = DeviceConfig;
-		ALPSGUI.Controller = this;
+		for (var i=0; i<2; i++) {
+			bool left = (i==0);
+			GameObject OneCamera = new GameObject(left?"CameraLeft":"CameraRight");
+			OneCamera.AddComponent("Camera");
+			OneCamera.AddComponent("ALPSCamera");
+			(OneCamera.GetComponent("ALPSCamera") as ALPSCamera).leftEye = left;
+			OneCamera.transform.parent = head.transform;
+			OneCamera.transform.position = head.transform.position;
+			if(left)cameraLeft = OneCamera;
+			else cameraRight = OneCamera;
+		}
 
 		ALPSCamera[] ALPSCameras = FindObjectsOfType(typeof(ALPSCamera)) as ALPSCamera[];
 		foreach (ALPSCamera cam in ALPSCameras) {
 			cam.Init();
 		}
 
-		mat = new Material(Shader.Find ("Custom/ALPSDistortion"));
+		mat = Resources.Load ("Materials/ALPSDistortion") as Material;
 
 		DPI = Screen.dpi;
 
 		//Render Textures
 		srcTex = new RenderTexture (2048, 1024, 16);
 		destTex = camera.targetTexture;
-
-		CameraLeft.targetTexture = CameraRight.targetTexture = srcTex;
+		cameraLeft.camera.targetTexture = cameraRight.camera.targetTexture = srcTex;
 
 		// Setting the main camera
 		camera.aspect = 1f;
@@ -102,96 +128,168 @@ public class ALPSController : MonoBehaviour {
 		camera.orthographic = true;
 		camera.renderingPath = RenderingPath.Forward;
 		camera.useOcclusionCulling = false;
-		CameraLeft.camera.depth = 0;
-		CameraRight.camera.depth = 1;
-		camera.depth = Mathf.Max (CameraLeft.depth, CameraRight.depth) + 1;
+		cameraLeft.camera.depth = 0;
+		cameraRight.camera.depth = 1;
+		camera.depth = Mathf.Max (cameraLeft.camera.depth, cameraRight.camera.depth) + 1;
 
-		//Enabling gyroscope
-		Input.gyro.enabled = true;
+		cameraLeft.gameObject.AddComponent("ALPSCrosshairs");
+		cameraRight.gameObject.AddComponent("ALPSCrosshairs");
 
-		CameraLeft.gameObject.AddComponent("ALPSCrosshair");
-		CameraRight.gameObject.AddComponent("ALPSCrosshair");
+		AudioListener[] listeners = FindObjectsOfType(typeof(AudioListener)) as AudioListener[];
+		if (listeners.Length < 1) {
+			gameObject.AddComponent ("AudioListener");
+		}
 
-		clearDirty();
+		ClearDirty();
 	}
 
-	void OnPostRender(){
-
+	/// <summary>
+	/// Renders scene for both cameras.
+	/// </summary>
+	public void OnPostRender(){
 		RenderTexture.active = destTex;
 		GL.Clear (false,true,Color.black);
-
 		RenderEye (true,srcTex);
 		RenderEye (false,srcTex);
+		srcTex.DiscardContents ();
 	}
-	
-	void RenderEye(bool LeftEye, RenderTexture source){
-		mat.mainTexture = source;
-		mat.SetVector("_SHIFT",new Vector2(LeftEye?0:0.5f,0));
-		float convergeOffset = ((DeviceConfig.Width * 0.5f) - DeviceConfig.IPD) / DeviceConfig.Width;
-		mat.SetVector("_CONVERGE",new Vector2((LeftEye?1f:-1f)*convergeOffset,0));
-		mat.SetFloat ("_AberrationOffset",DeviceConfig.EnableChromaticCorrection?DeviceConfig.ChromaticCorrection:0f);
-		//mat.SetFloat ("_ChromaticConstant",DeviceConfig.EnableChromaticCorrection?ChromaticConstant:0f);
-		float ratio = (DeviceConfig.IPD*0.5f) / DeviceConfig.Width;
-		mat.SetVector ("_Center",new Vector2(0.5f+(LeftEye?-ratio:ratio),0.5f));
 
-		GL.Viewport (LeftEye ? rectLeft : rectRight);
+	/// <summary>
+	/// Renders scene for one camera.
+	/// </summary>
+	/// <param name="_leftEye">True if renders for the left camera, false otherwise.</param>
+	/// <param name="_source">Source texture on which the camera renders.</param>
+	private void RenderEye(bool _leftEye, RenderTexture _source){
+		mat.mainTexture = _source;
+		mat.SetVector("_SHIFT",new Vector2(_leftEye?0:0.5f,0));
+		float convergeOffset = ((deviceConfig.Width * 0.5f) - deviceConfig.IPD) / deviceConfig.Width;
+		mat.SetVector("_CONVERGE",new Vector2((_leftEye?1f:-1f)*convergeOffset,0));
+		mat.SetFloat ("_AberrationOffset",deviceConfig.enableChromaticCorrection?deviceConfig.chromaticCorrection:0f);
+		float ratio = (deviceConfig.IPD*0.5f) / deviceConfig.Width;
+		mat.SetVector ("_Center",new Vector2(0.5f+(_leftEye?-ratio:ratio),0.5f));
+
+		GL.Viewport (_leftEye ? rectLeft : rectRight);
 
 		GL.PushMatrix ();
 		GL.LoadOrtho ();
 		mat.SetPass (0);
-		if(LeftEye)CameraLeft.GetComponent<ALPSCamera>().Draw ();
-		else CameraRight.GetComponent<ALPSCamera>().Draw ();
+		if(_leftEye)cameraLeft.GetComponent<ALPSCamera>().Draw ();
+		else cameraRight.GetComponent<ALPSCamera>().Draw ();
 		GL.PopMatrix ();
 	}
 
-	public void clearDirty(){
-
+	/// <summary>
+	/// Resets all the settings and applies the current DeviceConfig
+	/// </summary>
+	public void ClearDirty(){
 		//We give the current DPI to the new ALPSConfig
-		DeviceConfig.DPI = DPI;
-		if (DeviceConfig.DPI <= 0) {
-			DeviceConfig.DPI = ALPSConfig.DEFAULT_DPI;
+		deviceConfig.DPI = DPI;
+		if (deviceConfig.DPI <= 0) {
+			deviceConfig.DPI = ALPSConfig.DEFAULT_DPI;
+		}
+	
+		if(cameraLeft!=null && cameraRight!=null){
+			float widthPix = deviceConfig.WidthPix();
+			float heightPix = deviceConfig.HeightPix();
+
+			rectLeft  = new Rect (screenWidthPix*0.5f-widthPix*0.5f,screenHeightPix*0.5f-heightPix*0.5f,widthPix*0.5f,heightPix);
+			rectRight = new Rect (screenWidthPix*0.5f,screenHeightPix*0.5f-heightPix*0.5f,widthPix*0.5f,heightPix);
+
+			Vector3 camLeftPos = cameraLeft.transform.localPosition; 
+			camLeftPos.x = -deviceConfig.ILD*0.0005f;
+			cameraLeft.transform.localPosition = camLeftPos;
+			
+			Vector3 camRightPos = cameraRight.transform.localPosition;
+			camRightPos.x = deviceConfig.ILD*0.0005f;
+			cameraRight.transform.localPosition = camRightPos;
+			
+			cameraLeft.camera.fieldOfView = deviceConfig.fieldOfView;
+			cameraRight.camera.fieldOfView = deviceConfig.fieldOfView;
+
+			cameraLeft.GetComponent<ALPSCamera>().UpdateMesh();
+			cameraRight.GetComponent<ALPSCamera>().UpdateMesh();
 		}
 
-		float widthPix = DeviceConfig.WidthPix();
-		float heightPix = DeviceConfig.HeightPix();
+		ALPSCrosshairs[] ch = GetComponentsInChildren<ALPSCrosshairs> ();
+		foreach (ALPSCrosshairs c in ch) {
+			c.UpdateCrosshairs();
+			c.enabled = crosshairsEnabled;
+		}
+	}
 
-		rectLeft  = new Rect (ScreenWidthPix*0.5f-widthPix*0.5f,ScreenHeightPix*0.5f-heightPix*0.5f,widthPix*0.5f,heightPix);
-		rectRight = new Rect (ScreenWidthPix*0.5f,ScreenHeightPix*0.5f-heightPix*0.5f,widthPix*0.5f,heightPix);
+	/// <summary>
+	/// Indicates whether viewport should be fullscreen or fixed in size
+	/// </summary>
+	/// <param name="_fixed">True if fixed in size, false if fullscreen.</param>
+	public void SetFixedSize(bool _fixed){
+		if (_fixed != deviceConfig.fixedSize) {
+			ClearDirty();
+		}
+		deviceConfig.fixedSize = _fixed;
+	}
 
-		Vector3 camLeftPos = CameraLeft.transform.localPosition; 
-		camLeftPos.x = -DeviceConfig.ILD*0.0005f;
-		CameraLeft.transform.localPosition = camLeftPos;
+	/// <summary>
+	/// Sets a new device configuration.
+	/// </summary>
+	// <param name="_device">Name of the device.</param>
+	public void SetDevice(Device _device){
+		deviceConfig = ALPSDevice.GetConfig (_device);
+		ALPSCamera.deviceConfig = deviceConfig;
+		ALPSBarrelMesh.deviceConfig = deviceConfig;
+		ALPSCrosshairs.deviceConfig = deviceConfig;
+		ClearDirty ();
+	}
+
+	/// <summary>
+	/// Copy camera settings to left and right cameras. Will overwrite culling masks.
+	/// </summary>
+	/// <param name="_cam">The camera from which you want to copy the settings.</param>
+	public void SetCameraSettings(Camera _cam){
+		cameraLeft.camera.CopyFrom (_cam);
+		cameraRight.camera.CopyFrom (_cam);
+		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+	}
+	
+	/// <summary>
+	/// Adds left and right layers to the existing culling masks for left and right cameras.
+	/// </summary>
+	/// <param name="_leftLayer">Name of the layer rendered by the left camera.</param>
+	/// <param name="_rightLayer">Name of the layer rendered by the right camera.</param>
+	public int SetStereoLayers(string _leftLayer, string _rightLayer){
+		int leftLayer = LayerMask.NameToLayer (_leftLayer);
+		int rightLayer = LayerMask.NameToLayer (_rightLayer);
+		if (leftLayer < 0 && rightLayer < 0) return -1;
 		
-		Vector3 camRightPos = CameraRight.transform.localPosition;
-		camRightPos.x = DeviceConfig.ILD*0.0005f;
-		CameraRight.transform.localPosition = camRightPos;
+		cameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
+		cameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
 		
-		CameraLeft.fieldOfView = DeviceConfig.FieldOfView;
-		CameraRight.fieldOfView = DeviceConfig.FieldOfView;
-
-		CameraLeft.GetComponent<ALPSCamera>().updateMesh();
-		CameraRight.GetComponent<ALPSCamera>().updateMesh();
-
-		ALPSCrosshair[] ch = GetComponentsInChildren<ALPSCrosshair> ();
-		foreach (ALPSCrosshair c in ch) {
-			c.updateCrosshair();
-			c.enabled = CrosshairEnabled;
-		}
+		cameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
+		cameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
+		
+		return 0;
 	}
-
-	void setFixedSize(bool _fixed){
-		if (_fixed != DeviceConfig.FixedSize) {
-			clearDirty();
-		}
-		DeviceConfig.FixedSize = _fixed;
+	
+	/// <summary>
+	/// Returns point of view position. This can be useful for setting up a Raycast.
+	/// </summary>
+	public Vector3 PointOfView(){
+		//returns current position plus NeckToEye vector
+		return new Vector3(transform.position.x,transform.position.y + ALPSConfig.neckPivotToEye.y*0.001f,transform.position.z + ALPSConfig.neckPivotToEye.x*0.001f);
 	}
-
-	public void setDevice(Device _device){
-		DeviceConfig = ALPSDevice.getConfig (_device);
-		ALPSCamera.DeviceConfig = DeviceConfig;
-		ALPSBarrelMesh.DeviceConfig = DeviceConfig;
-		ALPSCrosshair.DeviceConfig = DeviceConfig;
-		clearDirty ();
+	
+	/// <summary>
+	/// Returns forward direction vector. This can be useful for setting up a Raycast.
+	/// </summary>
+	public Vector3 ForwardDirection(){
+		return cameraLeft.camera.transform.forward;
 	}
-	 
+	
+	/// <summary>
+	/// Returns left and right cameras.
+	/// </summary>
+	public Camera[] GetCameras(){
+		Camera[] cams = {cameraLeft.camera, cameraRight.camera};
+		return cams;
+	}
 }

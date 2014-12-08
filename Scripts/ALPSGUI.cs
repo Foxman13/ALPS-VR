@@ -1,4 +1,4 @@
-﻿/************************************************************************
+/************************************************************************
 	ALPSGUI provides a basic menu to choose a headset
 
     Copyright (C) 2014  ALPS VR.
@@ -23,8 +23,12 @@ using System.Collections;
 
 public class ALPSGUI : MonoBehaviour {
 
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
+
 	/**Public**/
-	public static ALPSController Controller;
+	public static ALPSController controller;
 
 	/**Private**/
 	private float beginX;
@@ -35,11 +39,17 @@ public class ALPSGUI : MonoBehaviour {
 	private bool hiding;
 	private GUISkin ALPSSkin;
 
-	/**Functions**/
-	void Start(){
+	//=====================================================================================================
+	// Functions
+	//=====================================================================================================
+
+	/// <summary>
+	/// Initializes device selection menu.
+	/// </summary>
+	public void Start(){
 		beginX = 0;
 		endX = 0;
-		maxOffset = -ALPSController.ScreenWidthPix*0.25f;
+		maxOffset = -ALPSController.screenWidthPix*0.25f;
 		GUIVisible = false;
 		showing = false;
 		hiding = false;
@@ -50,7 +60,10 @@ public class ALPSGUI : MonoBehaviour {
 		ALPSSkin.button.contentOffset = new Vector2((int) maxOffset-1,0);
 	}
 
-	void Update() {
+	/// <summary>
+	/// Updates device selection menu.
+	/// </summary>
+	public void Update() {
 		if(Input.touchCount > 0){
 			if (Input.GetTouch (0).phase == TouchPhase.Began) {
 				beginX = Input.GetTouch (0).position.x;
@@ -94,6 +107,9 @@ public class ALPSGUI : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Triggered when user swipes right. Shows device selection menu.
+	/// </summary>
 	private void SwipeRight(){
 		if (!GUIVisible) {
 			GUIVisible = true;
@@ -101,33 +117,39 @@ public class ALPSGUI : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Triggered when user swipes left. Hides device selection menu.
+	/// </summary>
 	private void SwipeLeft(){
 		if (GUIVisible) {
 			hiding = true;
 		}
 	}
 
+	/// <summary>
+	/// Draws device selection menu.
+	/// </summary>
 	void OnGUI(){
 		if (GUIVisible) {
 			GUI.skin = ALPSSkin;
 		
 			// Make a background box
-			GUI.Box (new Rect (0, 0, ALPSController.ScreenWidthPix * 0.25f, ALPSController.ScreenHeightPix), "Choose a device");
+			GUI.Box (new Rect (0, 0, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix), "Choose a device");
 		
-			if (GUI.Button (new Rect (0, ALPSController.ScreenHeightPix * 0.15f, ALPSController.ScreenWidthPix * 0.25f, ALPSController.ScreenHeightPix * 0.15f), "Default")) {
-				Controller.setDevice (Device.DEFAULT);
+			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.15f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Default")) {
+				controller.SetDevice (Device.DEFAULT);
 			}
 		
-			if (GUI.Button (new Rect (0, ALPSController.ScreenHeightPix * 0.30f, ALPSController.ScreenWidthPix * 0.25f, ALPSController.ScreenHeightPix * 0.15f), "Altergaze")) {
-				Controller.setDevice (Device.ALTERGAZE);
+			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.30f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Altergaze")) {
+				controller.SetDevice (Device.ALTERGAZE);
 			}
 		
-			if (GUI.Button (new Rect (0, ALPSController.ScreenHeightPix * 0.45f, ALPSController.ScreenWidthPix * 0.25f, ALPSController.ScreenHeightPix * 0.15f), "Cardboard")) {
-				Controller.setDevice (Device.CARDBOARD);
+			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.45f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Cardboard")) {
+				controller.SetDevice (Device.CARDBOARD);
 			}
 		
-			if (GUI.Button (new Rect (0, ALPSController.ScreenHeightPix * 0.60f, ALPSController.ScreenWidthPix * 0.25f, ALPSController.ScreenHeightPix * 0.15f), "Firefly VR")) {
-				Controller.setDevice (Device.FIREFLY);
+			if (GUI.Button (new Rect (0, ALPSController.screenHeightPix * 0.60f, ALPSController.screenWidthPix * 0.25f, ALPSController.screenHeightPix * 0.15f), "Firefly VR")) {
+				controller.SetDevice (Device.FIREFLY);
 			}
 		}
 	}

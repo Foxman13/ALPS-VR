@@ -1,4 +1,4 @@
-﻿/************************************************************************
+/************************************************************************
 	ALPSNavigation provides an input-free navigation system
 	
     Copyright (C) 2014  ALPS VR.
@@ -21,47 +21,79 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent (typeof (CharacterController))]
+[System.Serializable]
 public class ALPSNavigation : MonoBehaviour {
 
-	private static float pitch;
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
+
+	/**Public**/
+	public static float pitch;
+	public float forwardLowerBound 	= 20;
+	public float forwardUpperBound 	= 30;
+	public float forwardLimit 		= 50;
+	public float backwardLowerBound = 20;
+	public float backwardUpperBound = 30;
+	public float backwardLimit 		= 50;
+
+	public static float ForwardLowerBound;
+	public static float ForwardUpperBound;
+	public static float BackwardLowerBound ;
+	public static float BackwardUpperBound;
+	public static float ForwardLimit;
+	public static float BackwardLimit;
 
 	/**Private**/
 	private CharacterController controller;
-
-		
 	private bool moving;
+	private GameObject head;
 
+	//=====================================================================================================
+	// Functions
+	//=====================================================================================================
 
-	/**Functions**/
-	public void Awake () {
+	/// <summary>
+	/// Initializes navigation system.
+	/// </summary>
+	public void Start () {
+		ForwardLowerBound = forwardLowerBound;
+		ForwardUpperBound = forwardUpperBound;
+		BackwardLowerBound = 360 - backwardLowerBound;
+		BackwardUpperBound = 360 - backwardUpperBound;
+		ForwardLimit = forwardLimit;
+		BackwardLimit = 360 - backwardLimit;
 
-		controller = transform.parent.gameObject.GetComponent ("CharacterController") as CharacterController;
-		transform.parent.gameObject.AddComponent ("CharacterMotor");
+		controller = this.gameObject.GetComponent ("CharacterController") as CharacterController;
+		this.gameObject.AddComponent ("CharacterMotor");
+		head = GameObject.Find ("ALPSHead");
 		if (Application.platform == RuntimePlatform.Android) {
-						Debug.Log (Application.platform);
-						moving = false;
-				}
+			moving = false;
+		}
 	}
 
+	/// <summary>
+	/// Updates navigation state.
+	/// </summary>
 	public void Update () {
-		pitch = this.transform.eulerAngles.x;
-		if (pitch >= 20 && pitch <= 30) {
+		pitch = head.transform.eulerAngles.x;
+		if (pitch >= ForwardLowerBound && pitch <= ForwardUpperBound) {
 			if (Application.platform == RuntimePlatform.Android){
 				if (!moving){
 					ALPSAndroid.Vibrate(20);
 					moving = true;
 				}
 			}
-			controller.Move (new Vector3 (transform.forward.x, 0, transform.forward.z) * Time.deltaTime * 3);
-			
-		} else if (pitch >= 330 && pitch <= 340) {
+			controller.Move (new Vector3 (head.transform.forward.x, 0, head.transform.forward.z) * Time.deltaTime * 3);
+		} else if (pitch >= BackwardUpperBound && pitch <= BackwardLowerBound) {
 			if (Application.platform == RuntimePlatform.Android){
 				if (!moving){
 					ALPSAndroid.Vibrate(20);
 					moving = true;
 				}
 			}
-			controller.Move (new Vector3 (-transform.forward.x, 0, -transform.forward.z) * Time.deltaTime * 3);
+			controller.Move (new Vector3 (-head.transform.forward.x, 0, -head.transform.forward.z) * Time.deltaTime * 3);
 			
 		} else {
 			if (Application.platform == RuntimePlatform.Android){
@@ -70,14 +102,17 @@ public class ALPSNavigation : MonoBehaviour {
 		}
 	}
 
-	public static float progress(){
-		if (pitch >= 20 && pitch <= 30 || pitch >= 330 && pitch <= 340) {
-						return 1f;		
+	/// <summary>
+	/// Initialize Android ALPS Activity.
+	/// </summary>
+	public static float Progress(){
+		if (pitch >= ForwardLowerBound && pitch <= ForwardUpperBound || pitch >= BackwardUpperBound && pitch <= BackwardLowerBound) {
+			return 1f;		
 		} else {
-			if(pitch>=0 && pitch < 20) return pitch/25f;
-			else if(pitch<=360 && pitch > 340)return (360-pitch)/25f;
-			else if(pitch>30 && pitch <= 50)return (50-pitch)/25f;
-			else if(pitch<330 && pitch >= 310)return (pitch-310)/25f;
+			if(pitch>=0 && pitch < ForwardLowerBound) return pitch/25f;
+			else if(pitch<=360 && pitch > BackwardLowerBound)return (360-pitch)/25f;
+			else if(pitch>ForwardUpperBound && pitch <= ForwardLimit)return (ForwardLimit-pitch)/25f;
+			else if(pitch<BackwardUpperBound && pitch >= BackwardLimit)return (pitch-BackwardLimit)/25f;
 			else return 0f;
 		} 
 	}

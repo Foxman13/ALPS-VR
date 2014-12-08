@@ -23,37 +23,45 @@ using System.Collections;
 
 public class ALPSCamera : MonoBehaviour{
 
+	//=====================================================================================================
+	// Attributes
+	//=====================================================================================================
+
 	/**Public**/
-	public static ALPSConfig DeviceConfig;
-	public bool LeftEye;
+	public static ALPSConfig deviceConfig;
+	public bool leftEye;
 
 	/**Private**/
 	private Mesh mesh;
 
+	//=====================================================================================================
+	// Functions
+	//=====================================================================================================
 
-	/**Functions**/
+	/// <summary>
+	/// Initializes the camera.
+	/// </summary>
 	public void Init(){
-
 		Vector3 camLeftPos = camera.transform.localPosition; 
-		camLeftPos.x = (LeftEye?-1:1)*DeviceConfig.ILD * 0.0005f;
-		camLeftPos.z = ALPSConfig.NeckPivotToEye.x * 0.001f;
-		camLeftPos.y = ALPSConfig.NeckPivotToEye.y * 0.001f;
-		
+		camLeftPos.x = (leftEye?-1:1) * deviceConfig.ILD * 0.0005f;
+		camLeftPos.z = ALPSConfig.neckPivotToEye.x * 0.001f;
+		camLeftPos.y = ALPSConfig.neckPivotToEye.y * 0.001f;
 		camera.transform.localPosition = camLeftPos;
 	}
 
-	public void updateMesh(){
-		
-		camera.rect = new Rect ((LeftEye?0f:0.5f),0f,0.5f,1f);
-		camera.aspect = DeviceConfig.Width*0.5f / DeviceConfig.Height;
-
-		mesh = ALPSBarrelMesh.GenerateMesh(20,20,LeftEye);
+	/// <summary>
+	/// Updates the mesh used for barrel distortion.
+	/// </summary>
+	public void UpdateMesh(){
+		camera.rect = new Rect ((leftEye?0f:0.5f),0f,0.5f,1f);
+		camera.aspect = deviceConfig.Width*0.5f / deviceConfig.Height;
+		mesh = ALPSBarrelMesh.GenerateMesh(20,20,leftEye);
 	}
 
+	/// <summary>
+	/// Draws render texture on mesh.
+	/// </summary>
 	public void Draw(){
-
 		Graphics.DrawMeshNow (mesh,Camera.current.transform.position,Camera.current.transform.rotation);
 	}
-
-
 }

@@ -13,10 +13,11 @@ The aim of the ALPS VR project is to create a lightweight Unity framework to hel
 
 [Official website](http://alpsvr.com) — [Documentation](http://alpsvr.com/docs/)
 
-
 ### Usage ###
 
 Download the [Unity package](http://alpsvr.com) and import it into your Unity project.
+
+Drag and drop the ALPSCamera prefab (ALPS/Prefabs/ALPSCamera.prefab) into your scene.
 
 ![alt tag](/Screenshots/ALPSVR_Preview.JPG)
 
@@ -26,8 +27,4 @@ Download the [Unity package](http://alpsvr.com) and import it into your Unity pr
   * Unity Pro for Android
   * Android SDK 3.2 or higher
 
-<<<<<<< HEAD
 You can still use ALPS VR without a Pro license but you will only benefit from side-by-side rendering and head-tracking features.
-=======
-You can still use ALPS VR without a Pro license but you will only benefit from side-by-side rendering and head-tracking features.
->>>>>>> origin/master

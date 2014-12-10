@@ -18,12 +18,19 @@ The aim of the ALPS VR project is to create a lightweight Unity framework to hel
 
 Download the [Unity package](http://alpsvr.com) and import it into your Unity project.
 
+<<<<<<< HEAD
 ![alt tag](/Screenshots/ALPSVR_Preview.jpeg)
 
+=======
+>>>>>>> origin/master
 ### Requirements ###
 * Unity 4.5 Pro or higher (untested on previous versions)
 * To deploy on Android:
   * Unity Pro for Android
   * Android SDK 3.2 or higher
 
+<<<<<<< HEAD
 You can still use ALPS VR without a Pro license but you will only benefit from side-by-side rendering and head-tracking features.
+=======
+You can still use ALPS VR without a Pro license but you will only benefit from side-by-side rendering and head-tracking features.
+>>>>>>> origin/master

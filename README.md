@@ -18,11 +18,8 @@ The aim of the ALPS VR project is to create a lightweight Unity framework to hel
 
 Download the [Unity package](http://alpsvr.com) and import it into your Unity project.
 
-<<<<<<< HEAD
-![alt tag](/Screenshots/ALPSVR_Preview.jpeg)
+![alt tag](/Screenshots/ALPSVR_Preview.JPG)
 
-=======
->>>>>>> origin/master
 ### Requirements ###
 * Unity 4.5 Pro or higher (untested on previous versions)
 * To deploy on Android:

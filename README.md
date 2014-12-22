@@ -11,7 +11,7 @@ The aim of the ALPS VR project is to create a lightweight Unity framework to hel
 *Head gesture navigation system
 *Built-in configurations for supported devices
 
-[Official website](http://alpsvr.com) — [Documentation](http://alpsvr.com/docs/)
+[Official website](http://alpsvr.com)
 
 ### Usage ###
 

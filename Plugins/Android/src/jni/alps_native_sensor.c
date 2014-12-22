@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * The IMU algorithms used for sensor fusion has been developed by Sebastian Madgwick
+ * and is available under the GNU GLP license at http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
  */
 
 #include <jni.h>
@@ -65,6 +67,9 @@ static Quaternion q={0,0,0,1};
 //=====================================================================================================
 // Functions
 //=====================================================================================================
+/* Getter function used Unity.
+ * Returns references to the orientation quaternion values.
+ */
 void get_q(float* _x, float* _y, float* _z, float* _w){
     q.x = q1;
     q.y = q2;
@@ -77,7 +82,9 @@ void get_q(float* _x, float* _y, float* _z, float* _w){
     *_w = q.w;
 }
 
-
+/* Intergrates raw gyroscope data over time.
+ * Returns a quaternion corresponding to the device orientation.
+ */
 void getQuaternionFromGyro(float ev_x,float ev_y,float ev_z,int64_t ev_timestamp){
     if(gyro_time_stamp != -1){
         float dT = (ev_timestamp - gyro_time_stamp) * N2S;
@@ -108,6 +115,8 @@ void getQuaternionFromGyro(float ev_x,float ev_y,float ev_z,int64_t ev_timestamp
 
 }
 
+/* Loop function to process gyroscope data
+ */
 int get_sensor_events_gyro(int fd, int events, void* data) {
     ASensorEvent event;
 
@@ -124,6 +133,8 @@ int get_sensor_events_gyro(int fd, int events, void* data) {
     return 1;
 }
 
+/* Loop function to process accelerometer data
+ */
 int get_sensor_events_acc(int fd, int events, void* data) {
     ASensorEvent event;
 
@@ -140,6 +151,8 @@ int get_sensor_events_acc(int fd, int events, void* data) {
     return 1;
 }
 
+/* Main function
+ */
 void android_main(struct android_app* state) { 
     app_dummy();
     AAssetManager* assetManager = state->activity->assetManager; 
@@ -149,6 +162,9 @@ void android_main(struct android_app* state) {
     AConfiguration_setNavigation(config,ACONFIGURATION_NAVIGATION_NONAV );
 }
 
+/* Initialization function.
+ * Creates the sensor managers, loops and event queues.
+ */
 void init(){
     app_dummy();
 
@@ -186,9 +202,8 @@ void init(){
 	}
 }
 
-//---------------------------------------------------------------------------------------------------
-// IMU algorithm update
-
+/* IMU algorithm update. Mahony implementation.
+ */
 void MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float az,int64_t ev_timestamp) {
 	if(time_stamp != -1){
         float dT = (ev_timestamp - time_stamp) * N2S;
@@ -259,6 +274,8 @@ void MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float
     time_stamp=ev_timestamp;
 }
 
+/* IMU algorithm update. Madgwick implementation.
+ */
 void MadgwickAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float az) {
 	float recipNorm;
 	float s0, s1, s2, s3;
@@ -327,10 +344,9 @@ void MadgwickAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, flo
 	q3 *= recipNorm;
 }
 
-//---------------------------------------------------------------------------------------------------
-// Fast inverse square-root
-// See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
-
+/* Fast inverse square-root
+ * See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
+ */
 float invSqrt(float x) {
 	float halfx = 0.5f * x;
 	float y = x;
@@ -341,6 +357,8 @@ float invSqrt(float x) {
 	return y;
 }
 
+/* Multiplies quaternions q1 and q2. Result goes in q1.
+ */
 void multiplyQuat(Quaternion* q1, Quaternion* q2){
     float nx = (q1->w)*(q2->x) + (q1->x)*(q2->w) + (q1->y)*(q2->z) - (q1->z)*(q2->y);
     float ny = (q1->w*q2->y - q1->x*q2->z + q1->y*q2->w + q1->z*q2->x);

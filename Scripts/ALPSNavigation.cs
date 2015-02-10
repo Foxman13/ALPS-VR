@@ -79,20 +79,24 @@ public class ALPSNavigation : MonoBehaviour {
 	public void Update () {
 		pitch = head.transform.eulerAngles.x;
 		if (pitch >= ForwardLowerBound && pitch <= ForwardUpperBound) {
+#if UNITY_ANDROID
 			if (Application.platform == RuntimePlatform.Android){
 				if (!moving){
 					ALPSAndroid.Vibrate(20);
 					moving = true;
 				}
 			}
+#endif
 			controller.Move (new Vector3 (head.transform.forward.x, 0, head.transform.forward.z) * Time.deltaTime * 3);
 		} else if (pitch >= BackwardUpperBound && pitch <= BackwardLowerBound) {
+            #if UNITY_ANDROID
 			if (Application.platform == RuntimePlatform.Android){
 				if (!moving){
 					ALPSAndroid.Vibrate(20);
 					moving = true;
 				}
 			}
+#endif
 			controller.Move (new Vector3 (-head.transform.forward.x, 0, -head.transform.forward.z) * Time.deltaTime * 3);
 			
 		} else {

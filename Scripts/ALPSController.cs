@@ -84,9 +84,15 @@ public class ALPSController : MonoBehaviour {
 			ALPSAndroid.Init ();
 			screenWidthPix = ALPSAndroid.WidthPixels ();
 			screenHeightPix = ALPSAndroid.HeightPixels ();
-		#endif
+		#elif UNITY_WP_8_1
+        	head.AddComponent("ALPSGyro");
+			Screen.orientation = ScreenOrientation.LandscapeLeft;
+            ALPSWP8.Init();
+        	screenWidthPix = ALPSWP8.WidthPixels ();
+			screenHeightPix = ALPSWP8.HeightPixels ();
+        #endif
 
-		//Make sure the longer dimension is width as the phone is always in landscape mode
+            //Make sure the longer dimension is width as the phone is always in landscape mode
 		if(screenWidthPix<screenHeightPix){
 			int tmp = screenHeightPix;
 			screenHeightPix = screenWidthPix;

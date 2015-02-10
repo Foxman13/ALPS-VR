@@ -22,7 +22,7 @@ using UnityEngine;
 using System;
 
 public class ALPSAndroid : MonoBehaviour {
-
+#if UNITY_ANDROID
 	//=====================================================================================================
 	// Attributes
 	//=====================================================================================================
@@ -82,4 +82,5 @@ public class ALPSAndroid : MonoBehaviour {
 		float w = jc.CallStatic<float> ("getGameRotationW");
 		return new Quaternion (x,-y,z,w);
 	}
+#endif
 }

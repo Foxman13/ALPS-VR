@@ -32,40 +32,76 @@ public class ALPSGyro : MonoBehaviour {
 	private Quaternion orientation = Quaternion.identity;
 	private float q0,q1,q2,q3;
 
+    private bool gyroBool;
+    private Gyroscope gyro;
+    private Quaternion rotFix;
+    private Vector3 initial = new Vector3(90, 180, 0);
+
 	//=====================================================================================================
 	// Functions
 	//=====================================================================================================
+#if UNITY_ANDROID
 	[DllImport ("alps_native_sensor")] private static extern void get_q(ref float q0,ref float q1,ref float q2,ref float q3);
 	[DllImport ("alps_native_sensor")] private static extern void init();
+#endif
 
 	/// <summary>
 	/// Initializes ALPS native plugin.
 	/// </summary>
 	public void Awake(){
-		#if UNITY_ANDROID
+#if UNITY_ANDROID
 			init();
-		#endif
+#endif
+#if UNITY_WP_8_1
+        gyroBool = SystemInfo.supportsGyroscope;
+        Debug.Log("gyro bool = " + gyroBool.ToString());
+
+        if (gyroBool)
+        {
+            gyro = Input.gyro;
+            gyro.enabled = true;
+
+            rotFix = new Quaternion(0, 0, 0.7071f, 0.7071f);
+        }
+        else
+        {
+            Debug.Log("No Gyro Support");
+        }
+#endif
 	}
 
 	/// <summary>
 	/// Updates head orientation after all Update functions have been called.
 	/// </summary>
-	public void LateUpdate () {
-		#if UNITY_ANDROID
-		getOrientation();
+	public void LateUpdate ()
+    {
+#if UNITY_ANDROID
+        getOrientation();
 		transform.localRotation = landscapeLeft * orientation;
-		#endif
+#endif
+
+#if UNITY_WP_8_1
+        if (gyroBool)
+        {
+            var camRot = gyro.attitude * rotFix;
+            transform.eulerAngles = initial;
+            transform.localRotation *= camRot;
+        }
+#endif
 	}
 
+#if UNITY_ANDROID
 	/// <summary>
 	/// Gets orientation from ALPS native plugin.
 	/// </summary>
 	public void getOrientation(){
+
 		get_q (ref q0,ref q1,ref q2,ref q3);
+
 		orientation.x = q1;
 		orientation.y = -q0;
 		orientation.z = q2;
 		orientation.w = q3;
 	}
-	
+#endif
 }

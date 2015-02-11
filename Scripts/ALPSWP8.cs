@@ -1,7 +1,7 @@
 ﻿/************************************************************************
 	ALPSWP8 is an interface with the Windows Phone system
 	
-    Copyright (C) 2014  ALPS VR.
+    Copyright (C) 2014  ALPS VR. - Jasaon Fox, Peter Daukintis
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,25 +23,12 @@ using System;
 
 public class ALPSWP8 : MonoBehaviour
 {
-
-    //=====================================================================================================
-    // Attributes
-    //=====================================================================================================
-
-    /**Private**/
-    //private static AndroidJavaClass jc;
-
-    //=====================================================================================================
-    // Attributes
-    //=====================================================================================================
-
     /// <summary>
     /// Initializes Android ALPS Activity.
     /// </summary>
     public static void Init()
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        //jc = new AndroidJavaClass("com.alpsvr.android.ALPSActivity");
     }
 
     /// <summary>
@@ -49,7 +36,7 @@ public class ALPSWP8 : MonoBehaviour
     /// </summary>
     public static void Vibrate()
     {
-        //Vibrate(8);
+        Vibrate(8);
     }
 
     /// <summary>
@@ -58,8 +45,10 @@ public class ALPSWP8 : MonoBehaviour
     /// <param name="_milliseconds">The number of milliseconds to vibrate.</param>
     public static void Vibrate(int _milliseconds)
     {
-        //jc.CallStatic("vibrate", _milliseconds);
-        
+#if NETFX_CORE
+            var vibrationDevice = Windows.Phone.Devices.Notification.VibrationDevice.GetDefault();
+            vibrationDevice.Vibrate(TimeSpan.FromMilliseconds(_milliseconds));
+#endif
     }
 
     /// <summary>
@@ -68,8 +57,6 @@ public class ALPSWP8 : MonoBehaviour
     public static int WidthPixels()
     {
         return Screen.currentResolution.width;
-        //return 1920;
-        //return jc.CallStatic<int>("getWidthPixel");
     }
 
     /// <summary>
@@ -78,8 +65,6 @@ public class ALPSWP8 : MonoBehaviour
     public static int HeightPixels()
     {
         return Screen.currentResolution.height;
-        //return 1080;
-        //return jc.CallStatic<int>("getHeightPixel");
     }
 
     /// <summary>

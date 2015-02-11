@@ -30,7 +30,6 @@ public class ALPSCamera : MonoBehaviour{
 	/**Public**/
 	public static ALPSConfig deviceConfig;
 	public bool leftEye;
-    public bool useBarrelDistortionPostEffect;
 
 	/**Private**/
 	private Mesh mesh;
@@ -48,11 +47,6 @@ public class ALPSCamera : MonoBehaviour{
 		camLeftPos.z = ALPSConfig.neckPivotToEye.x * 0.001f;
 		camLeftPos.y = ALPSConfig.neckPivotToEye.y * 0.001f;
 		camera.transform.localPosition = camLeftPos;
-
-        if(useBarrelDistortionPostEffect)
-        {
-            gameObject.AddComponent<BarrelDistortion>();
-        }
 	}
 
 	/// <summary>

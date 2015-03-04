@@ -26,5 +26,8 @@ Drag and drop the ALPSCamera prefab (ALPS/Prefabs/ALPSCamera.prefab) into your s
 * To deploy on Android:
   * Unity Pro for Android
   * Android SDK 3.2 or higher
+* To deploy to Windows Phone 8.1
+  * Unity Pro
+  * Visual Studio 2013 Update 4 or higher with the Windows SDK
 
 You can still use ALPS VR without a Pro license but you will only benefit from side-by-side rendering and head-tracking features.

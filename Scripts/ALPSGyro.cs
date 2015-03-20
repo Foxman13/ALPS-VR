@@ -34,8 +34,8 @@ public class ALPSGyro : MonoBehaviour {
 
     private bool gyroBool;
     private Gyroscope gyro;
-    private Quaternion rotFix;
-    private Vector3 initial = new Vector3(90, 180, 0);
+    //private Quaternion rotFix;
+    private Vector3 initial = new Vector3(90, 0, 0);
 
 	//=====================================================================================================
 	// Functions
@@ -61,7 +61,7 @@ public class ALPSGyro : MonoBehaviour {
             gyro = Input.gyro;
             gyro.enabled = true;
 
-            rotFix = new Quaternion(0, 0, 0.7071f, 0.7071f);
+			//rotFix = new Quaternion(0, 0, 0.7071f, 0.7071f);
         }
         else
         {
@@ -83,12 +83,16 @@ public class ALPSGyro : MonoBehaviour {
 #if UNITY_WP_8_1
         if (gyroBool)
         {
-            var camRot = gyro.attitude * rotFix;
+            var gyroA = gyro.attitude;
+            var rotation = gyroA.eulerAngles;
+            rotation.z += 180;
+            gyroA.eulerAngles = rotation;
+
             transform.eulerAngles = initial;
-            transform.localRotation *= camRot;
+            transform.localRotation *= gyroA;
         }
 #endif
-	}
+    }
 
 #if UNITY_ANDROID
 	/// <summary>

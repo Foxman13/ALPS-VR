@@ -55,27 +55,27 @@ public class ALPSControllerLight : MonoBehaviour {
 		head.transform.parent = transform;
 		head.transform.position = transform.position;
 		#if UNITY_EDITOR
-			head.AddComponent ("MouseLook");
+			head.AddComponent <MouseLook>();
 		#elif UNITY_ANDROID
 			head.AddComponent("ALPSGyro");
 		#endif
 		cameraLeft = new GameObject("CameraLeft");
-		cameraLeft.AddComponent ("Camera");
-		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
+		cameraLeft.AddComponent <Camera>();
+		cameraLeft.GetComponent<Camera>().rect = new Rect (0,0,0.5f,1);
 		cameraLeft.transform.parent = head.transform;
 		cameraLeft.transform.position = head.transform.position;
 		cameraLeft.transform.localPosition = new Vector3 (ILD*-0.0005f,neckToEye.y*0.001f,neckToEye.x*0.001f);
 
 		cameraRight = new GameObject("CameraRight");
-		cameraRight.AddComponent ("Camera");
-		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+		cameraRight.AddComponent <Camera>();
+		cameraRight.GetComponent<Camera>().rect = new Rect (0.5f,0,0.5f,1);
 		cameraRight.transform.parent = head.transform;
 		cameraRight.transform.position = head.transform.position;
 		cameraRight.transform.localPosition = new Vector3 (ILD*0.0005f,neckToEye.y*0.001f,neckToEye.x*0.001f);
 
 		AudioListener[] listeners = FindObjectsOfType(typeof(AudioListener)) as AudioListener[];
 		if (listeners.Length < 1) {
-			gameObject.AddComponent ("AudioListener");
+			gameObject.AddComponent <AudioListener>();
 		}
 	}
 
@@ -84,10 +84,10 @@ public class ALPSControllerLight : MonoBehaviour {
 	/// </summary>
 	/// <param name="_cam">The camera from which you want to copy the settings.</param>
 	public void SetCameraSettings(Camera _cam){
-		cameraLeft.camera.CopyFrom (_cam);
-		cameraRight.camera.CopyFrom (_cam);
-		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
-		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+		cameraLeft.GetComponent<Camera>().CopyFrom (_cam);
+		cameraRight.GetComponent<Camera>().CopyFrom (_cam);
+		cameraLeft.GetComponent<Camera>().rect = new Rect (0,0,0.5f,1);
+		cameraRight.GetComponent<Camera>().rect = new Rect (0.5f,0,0.5f,1);
 	}
 	
 	/// <summary>
@@ -100,11 +100,11 @@ public class ALPSControllerLight : MonoBehaviour {
 		int rightLayer = LayerMask.NameToLayer (_rightLayer);
 		if (leftLayer < 0 && rightLayer < 0) return -1;
 
-		cameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
-		cameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
+		cameraLeft.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
+		cameraLeft.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
 
-		cameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
-		cameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
+		cameraRight.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
+		cameraRight.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
 
 		return 0;
 	}
@@ -121,14 +121,14 @@ public class ALPSControllerLight : MonoBehaviour {
 	/// Returns forward direction vector. This can be useful for setting up a Raycast.
 	/// </summary>
 	public Vector3 ForwardDirection(){
-		return cameraLeft.camera.transform.forward;
+		return cameraLeft.GetComponent<Camera>().transform.forward;
 	}
 
 	/// <summary>
 	/// Returns left and right cameras.
 	/// </summary>
 	public Camera[] GetCameras(){
-		Camera[] cams = {cameraLeft.camera, cameraRight.camera};
+		Camera[] cams = {cameraLeft.GetComponent<Camera>(), cameraRight.GetComponent<Camera>()};
 		return cams;
 	}
 }

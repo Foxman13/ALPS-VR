@@ -75,22 +75,22 @@ public class ALPSController : MonoBehaviour {
 		head.transform.position = transform.position;
 
 		#if UNITY_EDITOR
-			head.AddComponent("MouseLook");
+			head.AddComponent<MouseLook>();
 			screenWidthPix = Screen.width;
 			screenHeightPix = Screen.height;
 		#elif UNITY_ANDROID
-			head.AddComponent("ALPSGyro");
+			head.AddComponent<ALPSGyro>();
 			Screen.orientation = ScreenOrientation.LandscapeLeft;
 			ALPSAndroid.Init ();
 			screenWidthPix = ALPSAndroid.WidthPixels ();
 			screenHeightPix = ALPSAndroid.HeightPixels ();
-		#elif UNITY_WP_8_1
-        	head.AddComponent("ALPSGyro");
+#elif UNITY_WP_8_1
+        	head.AddComponent<ALPSGyro>();
 			Screen.orientation = ScreenOrientation.LandscapeLeft;
             ALPSWP8.Init();
         	screenWidthPix = ALPSWP8.WidthPixels ();
 			screenHeightPix = ALPSWP8.HeightPixels ();
-        #endif
+#endif
 
             //Make sure the longer dimension is width as the phone is always in landscape mode
 		if(screenWidthPix<screenHeightPix){
@@ -102,8 +102,8 @@ public class ALPSController : MonoBehaviour {
 		for (var i=0; i<2; i++) {
 			bool left = (i==0);
 			GameObject OneCamera = new GameObject(left?"CameraLeft":"CameraRight");
-			OneCamera.AddComponent("Camera");
-			OneCamera.AddComponent("ALPSCamera");
+			OneCamera.AddComponent<Camera>();
+			OneCamera.AddComponent<ALPSCamera>();
 			(OneCamera.GetComponent("ALPSCamera") as ALPSCamera).leftEye = left;
 			OneCamera.transform.parent = head.transform;
 			OneCamera.transform.position = head.transform.position;
@@ -122,28 +122,28 @@ public class ALPSController : MonoBehaviour {
 
 		//Render Textures
 		srcTex = new RenderTexture (2048, 1024, 16);
-		destTex = camera.targetTexture;
-		cameraLeft.camera.targetTexture = cameraRight.camera.targetTexture = srcTex;
+		destTex = GetComponent<Camera>().targetTexture;
+		cameraLeft.GetComponent<Camera>().targetTexture = cameraRight.GetComponent<Camera>().targetTexture = srcTex;
 
 		// Setting the main camera
-		camera.aspect = 1f;
-		camera.backgroundColor = Color.black;
-		camera.clearFlags =  CameraClearFlags.Nothing;
-		camera.cullingMask = 0;
-		camera.eventMask = 0;
-		camera.orthographic = true;
-		camera.renderingPath = RenderingPath.Forward;
-		camera.useOcclusionCulling = false;
-		cameraLeft.camera.depth = 0;
-		cameraRight.camera.depth = 1;
-		camera.depth = Mathf.Max (cameraLeft.camera.depth, cameraRight.camera.depth) + 1;
+		GetComponent<Camera>().aspect = 1f;
+		GetComponent<Camera>().backgroundColor = Color.black;
+		GetComponent<Camera>().clearFlags =  CameraClearFlags.Nothing;
+		GetComponent<Camera>().cullingMask = 0;
+		GetComponent<Camera>().eventMask = 0;
+		GetComponent<Camera>().orthographic = true;
+		GetComponent<Camera>().renderingPath = RenderingPath.Forward;
+		GetComponent<Camera>().useOcclusionCulling = false;
+		cameraLeft.GetComponent<Camera>().depth = 0;
+		cameraRight.GetComponent<Camera>().depth = 1;
+		GetComponent<Camera>().depth = Mathf.Max (cameraLeft.GetComponent<Camera>().depth, cameraRight.GetComponent<Camera>().depth) + 1;
 
-		cameraLeft.gameObject.AddComponent("ALPSCrosshairs");
-		cameraRight.gameObject.AddComponent("ALPSCrosshairs");
+		cameraLeft.gameObject.AddComponent<ALPSCrosshairs>();
+		cameraRight.gameObject.AddComponent<ALPSCrosshairs>();
 
 		AudioListener[] listeners = FindObjectsOfType(typeof(AudioListener)) as AudioListener[];
 		if (listeners.Length < 1) {
-			gameObject.AddComponent ("AudioListener");
+			gameObject.AddComponent <AudioListener>();
 		}
 
 		ClearDirty();
@@ -209,8 +209,8 @@ public class ALPSController : MonoBehaviour {
 			camRightPos.x = deviceConfig.ILD*0.0005f;
 			cameraRight.transform.localPosition = camRightPos;
 			
-			cameraLeft.camera.fieldOfView = deviceConfig.fieldOfView;
-			cameraRight.camera.fieldOfView = deviceConfig.fieldOfView;
+			cameraLeft.GetComponent<Camera>().fieldOfView = deviceConfig.fieldOfView;
+			cameraRight.GetComponent<Camera>().fieldOfView = deviceConfig.fieldOfView;
 
 			cameraLeft.GetComponent<ALPSCamera>().UpdateMesh();
 			cameraRight.GetComponent<ALPSCamera>().UpdateMesh();
@@ -251,10 +251,10 @@ public class ALPSController : MonoBehaviour {
 	/// </summary>
 	/// <param name="_cam">The camera from which you want to copy the settings.</param>
 	public void SetCameraSettings(Camera _cam){
-		cameraLeft.camera.CopyFrom (_cam);
-		cameraRight.camera.CopyFrom (_cam);
-		cameraLeft.camera.rect = new Rect (0,0,0.5f,1);
-		cameraRight.camera.rect = new Rect (0.5f,0,0.5f,1);
+		cameraLeft.GetComponent<Camera>().CopyFrom (_cam);
+		cameraRight.GetComponent<Camera>().CopyFrom (_cam);
+		cameraLeft.GetComponent<Camera>().rect = new Rect (0,0,0.5f,1);
+		cameraRight.GetComponent<Camera>().rect = new Rect (0.5f,0,0.5f,1);
 	}
 	
 	/// <summary>
@@ -267,11 +267,11 @@ public class ALPSController : MonoBehaviour {
 		int rightLayer = LayerMask.NameToLayer (_rightLayer);
 		if (leftLayer < 0 && rightLayer < 0) return -1;
 		
-		cameraLeft.camera.cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
-		cameraLeft.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
+		cameraLeft.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_leftLayer);
+		cameraLeft.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_rightLayer));
 		
-		cameraRight.camera.cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
-		cameraRight.camera.cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
+		cameraRight.GetComponent<Camera>().cullingMask |= 1 << LayerMask.NameToLayer(_rightLayer);
+		cameraRight.GetComponent<Camera>().cullingMask &=  ~(1 << LayerMask.NameToLayer(_leftLayer));
 		
 		return 0;
 	}
@@ -288,14 +288,14 @@ public class ALPSController : MonoBehaviour {
 	/// Returns forward direction vector. This can be useful for setting up a Raycast.
 	/// </summary>
 	public Vector3 ForwardDirection(){
-		return cameraLeft.camera.transform.forward;
+		return cameraLeft.GetComponent<Camera>().transform.forward;
 	}
 	
 	/// <summary>
 	/// Returns left and right cameras.
 	/// </summary>
 	public Camera[] GetCameras(){
-		Camera[] cams = {cameraLeft.camera, cameraRight.camera};
+		Camera[] cams = {cameraLeft.GetComponent<Camera>(), cameraRight.GetComponent<Camera>()};
 		return cams;
 	}
 }

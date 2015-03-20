@@ -42,19 +42,19 @@ public class ALPSCamera : MonoBehaviour{
 	/// Initializes the camera.
 	/// </summary>
 	public void Init(){
-		Vector3 camLeftPos = camera.transform.localPosition; 
+		Vector3 camLeftPos = GetComponent<Camera>().transform.localPosition; 
 		camLeftPos.x = (leftEye?-1:1) * deviceConfig.ILD * 0.0005f;
 		camLeftPos.z = ALPSConfig.neckPivotToEye.x * 0.001f;
 		camLeftPos.y = ALPSConfig.neckPivotToEye.y * 0.001f;
-		camera.transform.localPosition = camLeftPos;
+		GetComponent<Camera>().transform.localPosition = camLeftPos;
 	}
 
 	/// <summary>
 	/// Updates the mesh used for barrel distortion.
 	/// </summary>
 	public void UpdateMesh(){
-		camera.rect = new Rect ((leftEye?0f:0.5f),0f,0.5f,1f);
-		camera.aspect = deviceConfig.Width*0.5f / deviceConfig.Height;
+		GetComponent<Camera>().rect = new Rect ((leftEye?0f:0.5f),0f,0.5f,1f);
+		GetComponent<Camera>().aspect = deviceConfig.Width*0.5f / deviceConfig.Height;
 		mesh = ALPSBarrelMesh.GenerateMesh(20,20,leftEye);
 	}
 

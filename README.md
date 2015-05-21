@@ -1,6 +1,8 @@
 ALPS VR
 ========
 
+NOTE: My fork is up-to-date with Unity 5 support and works fully with Unity Personal Edition
+
 #### Unity framework for mobile virtual reality apps ####
 
 The aim of the ALPS VR project is to create a lightweight Unity framework to help developers publish virtual reality apps for every mobile based viewers. Framework features include:
@@ -30,4 +32,3 @@ Drag and drop the ALPSCamera prefab (ALPS/Prefabs/ALPSCamera.prefab) into your s
   * Unity Pro
   * Visual Studio 2013 Update 4 or higher with the Windows SDK
 
-You can still use ALPS VR without a Pro license but you will only benefit from side-by-side rendering and head-tracking features.
